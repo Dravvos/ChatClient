@@ -1,17 +1,19 @@
-﻿using System;
+﻿using ChatClient.Services.Security;
+using ChatClient.Services.Security.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Http;
-using ChatClient.Services.Security.Interfaces;
 using static ChatClient.Contracts.Auth.AuthDto;
 
 namespace ChatClient.Services.Api.Http
 {
     public class AuthHeaderHandler(ITokenStore tokenStore,
         IHttpClientFactory httpClientFactory,
-        IAuthSessionNotifier sessionNotifier) : DelegatingHandler
+        IAuthSessionNotifier sessionNotifier,
+        ITokenRefresher tokenRefresher) : DelegatingHandler
     {
         private static readonly SemaphoreSlim RefreshLock = new SemaphoreSlim(1, 1);
         private static readonly HttpRequestOptionsKey<bool> RetreidKey = new HttpRequestOptionsKey<bool>("RetriedAfterRefresh");
@@ -45,37 +47,8 @@ namespace ChatClient.Services.Api.Http
 
         private async Task<bool> TryRefreshAsync(string? tokenUserInFailedRequest, CancellationToken cancellationToken)
         {
-            await RefreshLock.WaitAsync(cancellationToken);
-            try
-            {
-                // outra requisição concorrente pode já ter renovado enquanto esperávamos o lock —
-                // nesse caso não gastamos o refresh token de novo, só usamos o access token novo
-
-                var currentToken = await tokenStore.GetAccessTokenAsync();
-                if (currentToken != tokenUserInFailedRequest)
-                    return true; // outro request já fez refresh
-
-                var refreshToken = await tokenStore.GetRefreshTokenAsync();
-                if (string.IsNullOrEmpty(refreshToken))
-                {
-                    sessionNotifier.NotifySessionExpired();
-                    return false; // sem refresh token, não dá pra renovar
-                }
-                var refreshApi = new ApiClient(httpClientFactory.CreateClient("AuthRefresh"));
-                var result = await refreshApi.PostAsync<RefreshRequest, AuthResponse>("api/auth/refresh", new RefreshRequest(refreshToken), cancellationToken);
-                await tokenStore.SaveAsync(result.AccessToken, result.RefreshToken);
-                return true;
-            }
-            catch (ApiException)
-            {
-                await tokenStore.ClearAsync();
-                sessionNotifier.NotifySessionExpired();
-                return false;
-            }
-            finally
-            {
-                RefreshLock.Release();
-            }
+            return await tokenRefresher.EnsureFreshTokenAsync(tokenUserInFailedRequest, cancellationToken);
+            
         }
 
         private static bool IsAuthEndpoint(HttpRequestMessage request) =>

@@ -18,24 +18,33 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- BARRA LATERAL -->
-                <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="#FFD5D8DC" Background="#FFF7F8FA">
+                <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="#FFD5D8DC" Background="#1A1A19">
                     <StackPanel>
                         <!-- Meu Perfil -->
                         <Border Padding="15" BorderThickness="0,0,0,1" BorderBrush="#FFDDDDDD" Height="70">
                             <StackPanel Orientation="Horizontal" Background="Transparent">
-                                <Border CornerRadius="23" Background="#FF5C6BC0" Width="46" Height="46" Margin="0,0,12,0">
+                                <Border CornerRadius="23" Background="#FF5C6BC0" Width="40" Height="40" Margin="0,0,12,0">
                                     <TextBlock Text="D" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="Daniel" />
-                                    <TextBlock Text="Online" Foreground="Green" FontSize="12"/>
+                                    <TextBlock Foreground="White" FontWeight="Bold" Text="Daniel" />
+                                    <TextBlock Text="Online" Foreground="#0ca30c" FontWeight="Bold" FontSize="12"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
 
                         <!-- Barra de Pesquisa -->
-                        <Border Padding="12" BorderThickness="0,0,0,1" BorderBrush="#FFDDDDDD">
-                            <TextBox Name="txtSearchUser" KeyUp="txtSearchUser_KeyUp" Background="#FFEEF1F5" Padding="10,5" Height="35" VerticalContentAlignment="Center"/>
+                        <Border Padding="12" BorderThickness="0,0,0,0" BorderBrush="#FFDDDDDD">
+                            <TextBox Text="Search Conversations" Name="txtSearchUser" KeyUp="txtSearchUser_KeyUp" Background="Transparent" Padding="10,5" Height="35" VerticalContentAlignment="Center" Foreground="White" BorderBrush="White">
+                                <TextBox.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5"/>
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </Style>
+
+                                </TextBox.Resources>
+
+                            </TextBox>
                         </Border>
 
                         <!-- Lista de Contatos -->
@@ -43,40 +52,40 @@
                             <StackPanel>
                                 <!-- Ana -->
                                 <ListBox Name="ContactsListBox" BorderThickness="0" Background="Transparent" SelectionChanged="ContactsListBox_SelectionChanged"/>
-                                <Border Padding="14" Background="#FFDFE7EF">
+                                <Border CornerRadius="8,8,8,8" Margin="12,0,12,0" Padding="14" Background="#032042">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="46" Height="46" Margin="0,0,12,0">
+                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="36" Height="36" Margin="0,0,12,0">
                                             <TextBlock Text="A" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Ana" FontWeight="Bold" Foreground="#FF222222" FontSize="15" />
-                                            <TextBlock Text="Até amanhã 😊" Foreground="#FF666666" FontSize="13" />
+                                            <TextBlock Text="Ana" FontWeight="Bold" Foreground="#6da7ec" FontSize="15" />
+                                            <TextBlock Text="Até amanhã 😊" Foreground="#c3c2b7" FontSize="13" />
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="09:52" Foreground="#FF888888" FontSize="12" VerticalAlignment="Top"/>
+                                        <TextBlock Grid.Column="2" Text="09:52" Foreground="#898781" FontSize="12" VerticalAlignment="Top"/>
                                     </Grid>
                                 </Border>
 
                                 <!-- João -->
-                                <Border Padding="14">
+                                <Border Margin="12,0,12,0" Padding="14">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="46" Height="46" Margin="0,0,12,0">
+                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="36" Height="36" Margin="0,0,12,0">
                                             <TextBlock Text="J" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="João" FontWeight="Bold" Foreground="#FF222222" FontSize="15" />
-                                            <TextBlock Text="Me envia o projeto." Foreground="#FF666666" FontSize="13" />
+                                            <TextBlock Text="João" FontWeight="Bold" Foreground="White" FontSize="15" />
+                                            <TextBlock Text="Me envia o projeto." Foreground="#c3c2b7" FontSize="13" />
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="Ontem" Foreground="#FF888888" FontSize="12" VerticalAlignment="Top"/>
+                                        <TextBlock Grid.Column="2" Text="Ontem" Foreground="#898781" FontSize="12" VerticalAlignment="Top"/>
                                     </Grid>
                                 </Border>
                             </StackPanel>
@@ -93,41 +102,52 @@
                     </Grid.RowDefinitions>
 
                     <!-- Cabeçalho do Chat -->
-                    <Border Grid.Row="0" Padding="15" BorderThickness="0,0,0,1" BorderBrush="#FFDDDDDD" Background="White">
+                    <Border Grid.Row="0" Padding="15" BorderThickness="0,0,0,1" BorderBrush="#FFDDDDDD" Background="#151515">
                         <StackPanel Orientation="Horizontal">
                             <Border CornerRadius="23" Background="#FF5C6BC0" Width="46" Height="46" Margin="0,0,12,0">
                                 <TextBlock Text="A" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Ana" FontWeight="Bold"/>
+                                <TextBlock Text="Ana" Foreground="White" FontWeight="Bold"/>
                                 <TextBlock Name="txtUserId" Text="" Visibility="Collapsed" FontSize="12"/>
-                                <TextBlock Text="Online" Foreground="#FF666666" FontSize="12"/>
+                                <TextBlock Text="Online" Foreground="DarkGray" FontWeight="SemiBold" FontSize="12"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Mensagens -->
-                    <ScrollViewer Grid.Row="1" Padding="25">
+                    <ScrollViewer Grid.Row="1" Padding="25" Background="#151515">
                         <StackPanel>
                             <ListBox Name="MessagesListBox" BorderThickness="0" Background="Transparent" />
                             <!-- Mensagem Recebida -->
-                            <Border CornerRadius="10" Background="White" Padding="12" MaxWidth="420" HorizontalAlignment="Left" Margin="0,0,0,15" BorderThickness="1" BorderBrush="#FFDDDDDD">
+                            <Border CornerRadius="10" Background="#1a1a19" Padding="12" MaxWidth="420" HorizontalAlignment="Left" BorderThickness="1">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
+                                </Border.BorderBrush>
                                 <TextBlock TextWrapping="Wrap" FontSize="14">
-                                    <Run Text="Oi! Tudo bem? " /><Run Text="09:10" Foreground="#FF777777" FontSize="11" />
+                                    <Run Foreground="#f0efec" Text="Oi! Tudo bem? " />
                                 </TextBlock>
                             </Border>
-
+                            <TextBlock TextWrapping="Wrap" Width="35" HorizontalAlignment="Left" Margin="5,5,0,15">
+                                <Run FontWeight="Bold" Text="09:10" Foreground="#FF777777" FontSize="11" />
+                            </TextBlock>
                             <!-- Mensagem Enviada -->
-                            <Border CornerRadius="10" Background="#FFD9FDD3" Padding="12" MaxWidth="420" HorizontalAlignment="Right" Margin="0,0,0,15">
+                            <Border CornerRadius="10" Background="#2A78D6" Padding="12" MaxWidth="420" HorizontalAlignment="Right">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
+                                </Border.BorderBrush>
                                 <TextBlock TextWrapping="Wrap" FontSize="14">
-                                    <Run Text="Tudo ótimo! E você? " /><Run Text="09:11" Foreground="#FF777777" FontSize="11" />
+                                    <Run Text="Tudo ótimo! E você? " Foreground="White" />
                                 </TextBlock>
                             </Border>
+                            <TextBlock TextWrapping="Wrap" Width="35" HorizontalAlignment="Right" Margin="0,5,5,0">
+                                <Run FontWeight="Bold" Text="09:11" Foreground="#FF777777" FontSize="11" />
+                            </TextBlock>
                         </StackPanel>
                     </ScrollViewer>
 
                     <!-- Campo de Envio (Rodapé) -->
-                    <Border Grid.Row="2" Padding="15" BorderThickness="0,1,0,0" BorderBrush="#FFDDDDDD" Background="White">
+                    <Border Grid.Row="2" Padding="15" BorderThickness="0,1,0,0" BorderBrush="#FFDDDDDD" Background="#151515">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -135,9 +155,9 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <Button Name="btnAttach" Click="btnAttach_Click" Grid.Column="0" Content="📎" FontSize="18" Background="Transparent" BorderBrush="Transparent" Margin="0,0,10,0"/>
-                            <TextBox Name="txtMessage" KeyUp="txtMessage_KeyUp" Grid.Column="1" Background="#FFEEF1F5" Padding="10,0" Height="40" VerticalContentAlignment="Center" HorizontalAlignment="Stretch"/>
-                            <Button Name="BtnSend" Click="BtnSend_Click" Grid.Column="2" Content="➤" Foreground="White" FontSize="18" Background="#FF0B8457" Width="42" Height="40" Margin="10,0,0,0" VerticalAlignment="Top" />
+                            <Button Name="btnAttach" Click="btnAttach_Click" Grid.Column="0" Content="📎" FontSize="18" Background="Transparent" BorderBrush="Transparent" Margin="0,0,10,0" Foreground="White"/>
+                            <TextBox Text="Type a message" Name="txtMessage" KeyUp="txtMessage_KeyUp" Grid.Column="1" Background="#1a1a19" Padding="10,0" Height="40" VerticalContentAlignment="Center" HorizontalAlignment="Stretch" Foreground="White"/>
+                            <Button Name="BtnSend" Click="BtnSend_Click" Grid.Column="2" Content="➤" Foreground="White" FontSize="18" Background="#2a78d6" Width="42" Height="40" Margin="10,0,0,0" VerticalAlignment="Top" />
                         </Grid>
                     </Border>
                 </Grid>

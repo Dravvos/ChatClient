@@ -74,5 +74,14 @@ namespace ChatClient
                 txtMessage.Focus();
             }
         }
+
+        private void ContactsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ContactsListBox.SelectedItem != null)
+            {
+                var selectedUser = ContactsListBox.SelectedItem.ToString();
+                txtUserId.Text = selectedUser;
+            }
+        }
     }
 }
