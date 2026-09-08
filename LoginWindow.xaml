@@ -1,4 +1,5 @@
-﻿<Window xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Class="ChatClient.LoginWindow">
+﻿<Window xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Class="ChatClient.LoginWindow"
+        Loaded="Window_Loaded">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel TextElement.Foreground="#FFF0EFEC" TextElement.FontFamily="Arial, Helvetica, Segoe UI" Background="#FF151515">
             <Border Padding="20,12,20,10" MinHeight="425" MaxWidth="354">
@@ -20,35 +21,101 @@
                         </TextBlock>
                     </StackPanel>
                     <StackPanel>
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+                        <StackPanel Name="divLogin">
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
                             <Span Foreground="#FFDDDCD8" FontSize="13">
                                 <Run BaselineAlignment="Center" Text="Username" />                                
                             </Span>
                             <Run Text=" " />
-                            <InlineUIContainer>
-                                <TextBox x:Name="txtUsername" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" />
+                            <InlineUIContainer BaselineAlignment="Center">
+                                <TextBox x:Name="txtUsername" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
                             </InlineUIContainer>
-                        </TextBlock>
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
                             <Span Foreground="#FFDDDCD8" FontSize="13">
                                 <Run Text="Password" BaselineAlignment="Center" />
                             </Span>
                             <Run Text=" " />
                             <InlineUIContainer>
-                                <PasswordBox x:Name="txtPassword" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" />
+                                <PasswordBox x:Name="txtPassword" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
                             </InlineUIContainer>
-                        </TextBlock>
-                        <Border Padding="12,0,12,0" CornerRadius="7,7,7,7" Background="#FF3C0E0E" Height="32" Margin="0,-1,0,14">
-                            <TextBlock TextWrapping="Wrap" Foreground="#FFFF6B6B" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            </TextBlock>
+                            <Border Visibility="Collapsed" Padding="12,0,12,0" CornerRadius="7,7,7,7" Background="#FF3C0E0E" Height="32" Margin="0,-1,0,14" Name="BorderError">
+                                <TextBlock TextWrapping="Wrap" Foreground="#FFFF6B6B" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 
                                 <Run Text=" " />
-                                <Span BaselineAlignment="Center">
-                                    <Run BaselineAlignment="Center" Text="User or password invalids" />
+                                <Span BaselineAlignment="Center" >
+                                    <Run BaselineAlignment="Center" Text="User or password invalids" Name="TextError"/>
                                 </Span>
+                                </TextBlock>
+                            </Border>
+                            <Button Click="btnLogin_Click" x:Name="btnLogin" Content="Log In" Foreground="White" FontFamily="inherit" FontSize="14" FontWeight="SemiBold" Background="#FF2A78D6" BorderThickness="1,1,1,1" BorderBrush="#FF2A78D6" Height="37" Margin="0,0,0,13" />
+                        </StackPanel>
+                        <Border Visibility="Visible" Padding="12,0,12,0" CornerRadius="7,7,7,7" Height="32" Margin="0,-1,0,14" Name="BorderSignup">
+                            <TextBlock Name="lblRegister" TextWrapping="Wrap" Foreground="#FF2A78D6" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" PreviewMouseLeftButtonDown="lblRegister_PreviewMouseLeftButtonDown">
+                                <Run BaselineAlignment="Center" Text="Register" TextDecorations="Underline"/>
                             </TextBlock>
                         </Border>
-                        <Button Click="btnLogin_Click" x:Name="btnLogin" Content="Log In" Foreground="White" FontFamily="inherit" FontSize="14" FontWeight="SemiBold" Background="#FF2A78D6" BorderThickness="1,1,1,1" BorderBrush="#FF2A78D6" Height="37" Margin="0,0,0,13" />
-                        <Button Click="btnSignUp_Click" x:Name="btnSignUp" Content="Sign Up" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="14" FontWeight="SemiBold" Background="Transparent" BorderThickness="1,1,1,1" BorderBrush="#FF444443" Height="37" />
+
+                        <StackPanel Name="divSignUp" Visibility="Collapsed">
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+                                <Span Foreground="#FFDDDCD8" FontSize="13">
+                                    <Run BaselineAlignment="Center" Text="Email" />                                
+                                </Span>
+                                <Run Text=" " />
+                                <InlineUIContainer BaselineAlignment="Center">
+                                    <TextBox x:Name="txtEmail" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
+                                </InlineUIContainer>
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+                                <Span Foreground="#FFDDDCD8" FontSize="13">
+                                    <Run BaselineAlignment="Center" Text="Username" />                                
+                                </Span>
+                                <Run Text=" " />
+                                <InlineUIContainer BaselineAlignment="Center">
+                                    <TextBox x:Name="txtUsernameSignUp" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
+                                </InlineUIContainer>
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+                                <Span Foreground="#FFDDDCD8" FontSize="13">
+                                    <Run Text="Password" BaselineAlignment="Center" />
+                                </Span>
+                                <Run Text=" " />
+                                <InlineUIContainer>
+                                    <PasswordBox x:Name="txtPasswordSignUp" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="15" Background="#FF1A1A19" Padding="12,0,12,0" BorderThickness="1,1,1,1" BorderBrush="#FF3C3C3B" Height="36" Width="150" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
+                                </InlineUIContainer>
+                            </TextBlock>
+                            <Border Visibility="Collapsed" Padding="12,0,12,0" CornerRadius="7,7,7,7" Background="#FF3C0E0E" Height="32" Margin="0,-1,0,14" Name="BorderErrorSignUp">
+                                <TextBlock TextWrapping="Wrap" Foreground="#FFFF6B6B" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Run Text=" " />
+                                    <Span BaselineAlignment="Center" >
+                                        <Run BaselineAlignment="Center" Text="User or password is invalid" Name="TextErrorSignUp"/>
+                                    </Span>
+                                </TextBlock>
+                            </Border>
+                            <Button Click="btnSignUp_Click" x:Name="btnSignUp" Content="Sign Up" Foreground="#FFEEEEEE" FontFamily="inherit" FontSize="14" FontWeight="SemiBold" Height="37">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="#FF444443" BorderThickness="1">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#FF2A78D6"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="False">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                        <Border Visibility="Collapsed" Padding="12,0,12,0" CornerRadius="7,7,7,7" Height="32" Margin="0,-1,0,14" Name="BorderLogin">
+                            <TextBlock Name="lblLogin" TextWrapping="Wrap" Foreground="#FF2A78D6" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" PreviewMouseLeftButtonDown="lblLogin_PreviewMouseLeftButtonDown">
+         <Run BaselineAlignment="Center" Text="Login" TextDecorations="Underline"/>
+                            </TextBlock>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
             </Border>

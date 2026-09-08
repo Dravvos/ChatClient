@@ -32,6 +32,7 @@ namespace ChatClient.Services.Security
 
                 var refreshApi = new ApiClient(httpClientFactory.CreateClient("AuthRefresh"));
                 var result = await refreshApi.PostAsync<RefreshRequest, AuthResponse>("refresh", new RefreshRequest(refreshToken));
+                await tokenStore.SaveAsync(result.AccessToken, result.RefreshToken);
                 return true;
             }
             catch (ApiException)

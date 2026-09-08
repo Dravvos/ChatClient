@@ -41,7 +41,7 @@ namespace ChatClient.Services.Realtime
             _sessionNotifier = sessionNotifier;
 
             _connection = new HubConnectionBuilder()
-          .WithUrl($"{apiSettings.Value.BaseUrl}hubs/chat", options =>
+          .WithUrl($"{apiSettings.Value.BaseUrl}hubs/chatHub", options =>
           {
               options.AccessTokenProvider = async () => await _tokenStore.GetAccessTokenAsync();
           })
@@ -127,7 +127,7 @@ namespace ChatClient.Services.Realtime
 
         public async Task StartAsync(CancellationToken ct = default)
         {
-            if (_connection.State == HubConnectionState.Disconnected)
+            if (_connection.State != HubConnectionState.Disconnected)
                 return;
 
             SetState(ChatConnectionState.Connecting);

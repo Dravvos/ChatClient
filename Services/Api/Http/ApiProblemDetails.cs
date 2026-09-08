@@ -10,7 +10,7 @@ namespace ChatClient.Services.Api.Http
         string? type,
         string? Title,
         int? status,
-        string? Detail,
+        string? message,
         string? instance,
         IDictionary<string, string[]>? errors
         );

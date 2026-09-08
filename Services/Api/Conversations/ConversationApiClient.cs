@@ -27,6 +27,10 @@ namespace ChatClient.Services.Api.Conversations
 
         public Task<IReadOnlyList<ConversationSummaryDto>> GetMyConversationsAsync(CancellationToken ct = default)=>
             api.GetAsync<IReadOnlyList<ConversationSummaryDto>>("api/conversations", ct);
+
+        public Task<ConversationDto> CreateGroupAsync(string name, IReadOnlyList<Guid> participantIds, CancellationToken ct = default) =>
+    api.PostAsync<CreateGroupConversationRequest, ConversationDto>(
+        "api/conversations/group", new CreateGroupConversationRequest(name, participantIds), ct);
     }
 
     public record MessagesPageResponse(IReadOnlyList<MessageDto> Messages, bool HasMore);

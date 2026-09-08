@@ -42,5 +42,19 @@ namespace ChatClient.Services.Api.Auth
 
         public Task LogoutAsync(string refreshToken, CancellationToken ct = default)=>
             api.PostAsync("api/auth/logout", new RefreshRequest(refreshToken), ct);
+
+        public async Task<LoginOutcome> SignUpAsync(string username, string email, string password, CancellationToken ct = default)
+        {
+            try
+            {
+                var response = await api.PostAsync<SignUpRequest, AuthResponse>(
+                    "api/auth/signup", new SignUpRequest(username, email, password), ct);
+                return new LoginOutcome.Success(response.AccessToken, response.RefreshToken);
+            }
+            catch (ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                return new LoginOutcome.ValidationFailed(ex.Message); // ApiException já extrai Detail/Title do ProblemDetails
+            }
+        }
     }
 }

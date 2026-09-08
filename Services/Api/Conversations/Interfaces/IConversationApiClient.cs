@@ -13,6 +13,6 @@ namespace ChatClient.Services.Api.Conversations.Interfaces
         Task<ConversationDto> CreateDirectAsync(Guid otherUserId, CancellationToken ct = default);
         Task<(IReadOnlyList<MessageDto> Messages, bool HasMore)> GetMessagesAsync(
             Guid conversationId, DateTime? before = null, int pageSize = 30, CancellationToken ct = default);
-
+        Task<ConversationDto> CreateGroupAsync(string name, IReadOnlyList<Guid> participantIds, CancellationToken ct = default);
     }
 }

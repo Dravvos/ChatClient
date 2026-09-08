@@ -50,7 +50,7 @@ namespace ChatClient.Services.Security
                 if (!File.Exists(_filePath))
                     return null;
 
-                var protectedBytes = await File.ReadAllBytesAsync(_filePath);
+                var protectedBytes = File.ReadAllBytes(_filePath);
                 var plainBytes = ProtectedData.Unprotect(protectedBytes, Entropy, DataProtectionScope.CurrentUser);
                 _refreshTokenCache = Encoding.UTF8.GetString(plainBytes);
                 return _refreshTokenCache;

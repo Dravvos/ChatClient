@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using System.Configuration;
 using System.Data;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace ChatClient
@@ -33,19 +34,27 @@ namespace ChatClient
                 {
                     // Register your services and view models here
                     //services.Configure<ApiSettings>(configuration.GetSection("Api"));
+                    //Janelas
+                    services.AddTransient<LoginWindow>();
+                    services.AddTransient<CreateGroupWindow>();
                     services.AddSingleton<MainWindow>();
+
+                    // Fábricas: permitem que uma Window resolva outra sem injetar IServiceProvider diretamente
+                    services.AddTransient<Func<MainWindow>>(sp => sp.GetRequiredService<MainWindow>);
+                    services.AddTransient<Func<CreateGroupWindow>>(sp => sp.GetRequiredService<CreateGroupWindow>);
+
                     services.AddSingleton<ITokenStore, DpapiTokenStore>();
                     services.AddSingleton<IAuthSessionNotifier, AuthSessionNotifier>();
                     services.AddTransient<AuthHeaderHandler>();
 
                     services.AddHttpClient("AuthRefresh", client =>
                     {
-                        client.BaseAddress = new Uri("http://localhost:5000/");
+                        client.BaseAddress = new Uri("http://localhost:5051/");
                     });
 
                     services.AddHttpClient("Api", client =>
                     {
-                        client.BaseAddress = new Uri("http://localhost:5000/");
+                        client.BaseAddress = new Uri("http://localhost:5051/");
                     }).AddHttpMessageHandler<AuthHeaderHandler>();
 
                     services.AddSingleton<IApiClient>(sp=> new ApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api")));
@@ -56,6 +65,21 @@ namespace ChatClient
                     services.AddSingleton<IChatHubClient, ChatHubClient>();
                 })
                 .Build();
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            await AppHost!.StartAsync();
+
+            var login = AppHost.Services.GetRequiredService<LoginWindow>();
+            login.Show();
+            base.OnStartup(e);
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            await AppHost!.StopAsync();
+            base.OnExit(e);
         }
     }
 

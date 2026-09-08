@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using ChatClient.Services.Api.Conversations.Interfaces;
+using ChatClient.Services.Realtime.Interfaces;
+using Microsoft.AspNetCore.SignalR.Client;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,23 +20,33 @@ namespace ChatClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private HubConnection _connection;
+        private readonly IConversationApiClient _conversationApi;
+        private readonly IChatHubClient _hub;
+        private readonly Func<CreateGroupWindow> _createGroupFactory;
+        private readonly HubConnection _connection;
 
-        public MainWindow()
+        public MainWindow(IConversationApiClient conversationApi, IChatHubClient hub, Func<CreateGroupWindow> createGroupFactory)
         {
             InitializeComponent();
-            _connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/chatHub")
-                .WithAutomaticReconnect()
-                .Build();
+            _conversationApi = conversationApi;
+            _hub = hub;
+            _createGroupFactory = createGroupFactory;
+            _hub.MessageReceived += Hub_MessageRecieved;
 
-            _connection.On<string, string>("ReceiveMessage", (user, message) =>
+            _hub.StartAsync().ContinueWith(task =>
             {
-                Dispatcher.Invoke(() =>
+                if (task.IsFaulted)
                 {
-                    MessagesListBox.Items.Add($"{user}: {message}");
-                    MessagesListBox.ScrollIntoView(MessagesListBox.Items[MessagesListBox.Items.Count - 1]);
-                });
+                    MessageBox.Show($"Error connecting to chat hub: {task.Exception?.GetBaseException().Message}");
+                }
+            });
+        }
+
+        private void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                MessagesListBox.Items.Add($"{e.senderId}: {e.content}");
             });
         }
 

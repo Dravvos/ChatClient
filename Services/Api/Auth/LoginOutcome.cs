@@ -11,5 +11,6 @@ namespace ChatClient.Services.Api.Auth
         public sealed record Success(string AccessToken, string RefreshToken) : LoginOutcome;
         public sealed record InvalidCredentials : LoginOutcome;
         public sealed record AccountLocked(DateTimeOffset Until) : LoginOutcome;
+        public sealed record ValidationFailed(string Reason) : LoginOutcome;
     }
 }

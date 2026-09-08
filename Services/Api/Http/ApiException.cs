@@ -15,7 +15,7 @@ namespace ChatClient.Services.Api.Http
         public ApiProblemDetails? ProblemDetails { get; }
         public string? RawBody { get; }
         public ApiException(HttpStatusCode statusCode, ApiProblemDetails? problem, string? rawBody)
-                    : base(problem?.Detail ?? problem?.Title ?? $"API returned {(int)statusCode} ({statusCode}).")
+                    : base(problem?.message ?? problem?.Title ?? $"API returned {(int)statusCode} ({statusCode}).")
         {
             StatusCode = statusCode;
             ProblemDetails = problem;

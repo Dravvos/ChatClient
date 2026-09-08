@@ -12,5 +12,6 @@ namespace ChatClient.Contracts.Auth
         public record RefreshRequest(string RefreshToken);
         public record AuthResponse(string AccessToken, string RefreshToken);
         public record AccountLockedResponse(DateTimeOffset Until);
+        public record SignUpRequest(string Username, string Email, string Password);
     }
 }
