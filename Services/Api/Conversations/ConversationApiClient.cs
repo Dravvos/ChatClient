@@ -13,8 +13,8 @@ namespace ChatClient.Services.Api.Conversations
     public class ConversationApiClient(IApiClient api) : IConversationApiClient
     {
         public Task<ConversationDto> CreateDirectAsync(Guid otherUserId, CancellationToken ct = default)=>
-                api.PostAsync<CreateDirectConversationRequest, ConversationDto>(
-                "api/conversation/direct", new CreateDirectConversationRequest(otherUserId));
+                api.PostAsync<Guid, ConversationDto>(
+                "api/conversation/direct", otherUserId);
 
         public async Task<(IReadOnlyList<MessageDto> Messages, bool HasMore)> GetMessagesAsync(Guid conversationId, DateTime? before = null, int pageSize = 30, CancellationToken ct = default)
         {

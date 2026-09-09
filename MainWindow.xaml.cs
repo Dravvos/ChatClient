@@ -1,6 +1,10 @@
-﻿using ChatClient.Services.Api.Conversations.Interfaces;
+﻿using ChatClient.Contracts.Conversations;
+using ChatClient.Services.Api;
+using ChatClient.Services.Api.Conversations.Interfaces;
+using ChatClient.Services.Api.Messages.Interfaces;
 using ChatClient.Services.Realtime.Interfaces;
 using Microsoft.AspNetCore.SignalR.Client;
+using System.Collections;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,16 +25,21 @@ namespace ChatClient
     public partial class MainWindow : Window
     {
         private readonly IConversationApiClient _conversationApi;
+        private readonly IMessageApiClient _messageApi;
         private readonly IChatHubClient _hub;
+        private readonly IUserApiClient _userApi;
         private readonly Func<CreateGroupWindow> _createGroupFactory;
         private readonly HubConnection _connection;
 
-        public MainWindow(IConversationApiClient conversationApi, IChatHubClient hub, Func<CreateGroupWindow> createGroupFactory)
+        public MainWindow(IConversationApiClient conversationApi, IChatHubClient hub, Func<CreateGroupWindow> createGroupFactory, IMessageApiClient messageApi,
+            IUserApiClient userApi)
         {
             InitializeComponent();
             _conversationApi = conversationApi;
             _hub = hub;
             _createGroupFactory = createGroupFactory;
+            _userApi = userApi;
+            _messageApi = messageApi;
             _hub.MessageReceived += Hub_MessageRecieved;
             borderExample1.Visibility = Visibility.Collapsed;
             borderExample2.Visibility = Visibility.Collapsed;
@@ -62,11 +71,12 @@ namespace ChatClient
             }
         }
 
-        private void txtSearchUser_KeyUp(object sender, KeyEventArgs e)
+        private async void txtSearchUser_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-
+                var userId = await _userApi.GetIdByUsername(txtSearchUser.Text);
+                await _conversationApi.CreateDirectAsync(userId);
             }
         }
 
@@ -81,23 +91,39 @@ namespace ChatClient
             }
         }
 
-        private void ContactsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ContactsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ContactsListBox.SelectedItem != null)
             {
-                var selectedUser = ContactsListBox.SelectedItem.ToString();
-                txtUserId.Text = selectedUser;
+                var selectedConversation = (ConversationSummaryDto)ContactsListBox.SelectedItem;
+
+                var messages = await _conversationApi.GetMessagesAsync(selectedConversation.id);
+
+                foreach (var message in messages.Messages)
+                {
+                    //MessagesListBox.Items.Add($"{message.senderId}: {message.content}");
+                    MessagesListBox.Items.Add(message);
+                }
+
             }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            ContactsListBox.Items.Clear();            
+            ContactsListBox.Items.Clear();
+            borderMessagerRecievedExample.Visibility = Visibility.Collapsed;
+            borderMessageSentExample.Visibility = Visibility.Collapsed;
+
             var conversations = await _conversationApi.GetMyConversationsAsync();
             foreach (var conversation in conversations)
             {
-                ContactsListBox.Items.Add(conversation.name);
+                ContactsListBox.Items.Add(conversation.id);
+                /*var border = new Border();
+                border = borderExample2;
+                border.Visibility = Visibility.Visible;
+                border.Child.*/
             }
         }
+
     }
 }

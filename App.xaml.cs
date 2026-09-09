@@ -5,17 +5,15 @@ using ChatClient.Services.Api.Conversations;
 using ChatClient.Services.Api.Conversations.Interfaces;
 using ChatClient.Services.Api.Http;
 using ChatClient.Services.Api.Http.Interfaces;
+using ChatClient.Services.Api.Messages;
+using ChatClient.Services.Api.Messages.Interfaces;
 using ChatClient.Services.Realtime;
 using ChatClient.Services.Realtime.Interfaces;
 using ChatClient.Services.Security;
 using ChatClient.Services.Security.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Configuration;
-using System.Data;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace ChatClient
@@ -61,6 +59,8 @@ namespace ChatClient
 
                     services.AddSingleton<IAuthApiClient, AuthApiClient>();
                     services.AddSingleton<IConversationApiClient, ConversationApiClient>();
+                    services.AddSingleton<IMessageApiClient, MessageApiClient>();
+                    services.AddSingleton<IUserApiClient, UserApiClient>();
                     services.AddSingleton<ITokenRefresher, TokenRefresher>();
                     services.AddSingleton<IChatHubClient, ChatHubClient>();
                 })

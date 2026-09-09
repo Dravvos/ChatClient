@@ -118,10 +118,11 @@
 
                     <!-- Mensagens -->
                     <ScrollViewer Grid.Row="1" Padding="25" Background="#151515" Name="scroll_Messages">
+
                         <StackPanel>
                             <ListBox Name="MessagesListBox" BorderThickness="0" Background="Transparent" />
                             <!-- Mensagem Recebida -->
-                            <Border CornerRadius="10" Background="#1a1a19" Padding="12" MaxWidth="420" HorizontalAlignment="Left" BorderThickness="1">
+                            <Border Name="borderMessagerRecievedExample" CornerRadius="10" Background="#1a1a19" Padding="12" MaxWidth="420" HorizontalAlignment="Left" BorderThickness="1">
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
                                 </Border.BorderBrush>
@@ -133,7 +134,7 @@
                                 <Run FontWeight="Bold" Text="09:10" Foreground="#FF777777" FontSize="11" />
                             </TextBlock>
                             <!-- Mensagem Enviada -->
-                            <Border CornerRadius="10" Background="#2A78D6" Padding="12" MaxWidth="420" HorizontalAlignment="Right">
+                            <Border Name="borderMessageSentExample" CornerRadius="10" Background="#2A78D6" Padding="12" MaxWidth="420" HorizontalAlignment="Right">
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
                                 </Border.BorderBrush>
