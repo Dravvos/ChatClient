@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="600" Width="800"
+        Loaded="Window_Loaded">
 
     <Grid TextElement.FontFamily="Segoe UI, Arial" Background="#FFE9EDEF">
         <Border Padding="0" CornerRadius="10" Margin="10" Background="White">
@@ -48,11 +49,11 @@
                         </Border>
 
                         <!-- Lista de Contatos -->
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Name="scroll_Contacts">
                             <StackPanel>
                                 <!-- Ana -->
                                 <ListBox Name="ContactsListBox" BorderThickness="0" Background="Transparent" SelectionChanged="ContactsListBox_SelectionChanged"/>
-                                <Border CornerRadius="8,8,8,8" Margin="12,0,12,0" Padding="14" Background="#032042">
+                                <Border CornerRadius="8,8,8,8" Margin="12,0,12,0" Padding="14" Background="#032042" Name="borderExample1">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -71,7 +72,7 @@
                                 </Border>
 
                                 <!-- João -->
-                                <Border Margin="12,0,12,0" Padding="14">
+                                <Border Name="borderExample2" Margin="12,0,12,0" Padding="14">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -116,7 +117,7 @@
                     </Border>
 
                     <!-- Mensagens -->
-                    <ScrollViewer Grid.Row="1" Padding="25" Background="#151515">
+                    <ScrollViewer Grid.Row="1" Padding="25" Background="#151515" Name="scroll_Messages">
                         <StackPanel>
                             <ListBox Name="MessagesListBox" BorderThickness="0" Background="Transparent" />
                             <!-- Mensagem Recebida -->

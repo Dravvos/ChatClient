@@ -32,14 +32,8 @@ namespace ChatClient
             _hub = hub;
             _createGroupFactory = createGroupFactory;
             _hub.MessageReceived += Hub_MessageRecieved;
-
-            _hub.StartAsync().ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    MessageBox.Show($"Error connecting to chat hub: {task.Exception?.GetBaseException().Message}");
-                }
-            });
+            borderExample1.Visibility = Visibility.Collapsed;
+            borderExample2.Visibility = Visibility.Collapsed;
         }
 
         private void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto e)
@@ -93,6 +87,16 @@ namespace ChatClient
             {
                 var selectedUser = ContactsListBox.SelectedItem.ToString();
                 txtUserId.Text = selectedUser;
+            }
+        }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            ContactsListBox.Items.Clear();            
+            var conversations = await _conversationApi.GetMyConversationsAsync();
+            foreach (var conversation in conversations)
+            {
+                ContactsListBox.Items.Add(conversation.name);
             }
         }
     }

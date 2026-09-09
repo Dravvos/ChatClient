@@ -14,23 +14,23 @@ namespace ChatClient.Services.Api.Conversations
     {
         public Task<ConversationDto> CreateDirectAsync(Guid otherUserId, CancellationToken ct = default)=>
                 api.PostAsync<CreateDirectConversationRequest, ConversationDto>(
-                "api/conversations/direct", new CreateDirectConversationRequest(otherUserId));
+                "api/conversation/direct", new CreateDirectConversationRequest(otherUserId));
 
         public async Task<(IReadOnlyList<MessageDto> Messages, bool HasMore)> GetMessagesAsync(Guid conversationId, DateTime? before = null, int pageSize = 30, CancellationToken ct = default)
         {
             var query = before is null ? $"pageSize={pageSize}" : $"before={before.Value:o}&pageSize={pageSize}";
-            var result = await api.GetAsync<MessagesPageResponse>($"api/conversations/{conversationId}/messages?{query}", ct);
+            var result = await api.GetAsync<MessagesPageResponse>($"api/conversation/{conversationId}/messages?{query}", ct);
 
             return (result.Messages, result.HasMore);
         }
         
 
         public Task<IReadOnlyList<ConversationSummaryDto>> GetMyConversationsAsync(CancellationToken ct = default)=>
-            api.GetAsync<IReadOnlyList<ConversationSummaryDto>>("api/conversations", ct);
+            api.GetAsync<IReadOnlyList<ConversationSummaryDto>>("api/conversation", ct);
 
         public Task<ConversationDto> CreateGroupAsync(string name, IReadOnlyList<Guid> participantIds, CancellationToken ct = default) =>
     api.PostAsync<CreateGroupConversationRequest, ConversationDto>(
-        "api/conversations/group", new CreateGroupConversationRequest(name, participantIds), ct);
+        "api/conversation/group", new CreateGroupConversationRequest(name, participantIds), ct);
     }
 
     public record MessagesPageResponse(IReadOnlyList<MessageDto> Messages, bool HasMore);

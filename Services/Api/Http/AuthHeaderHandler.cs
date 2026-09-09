@@ -48,7 +48,7 @@ namespace ChatClient.Services.Api.Http
         private async Task<bool> TryRefreshAsync(string? tokenUserInFailedRequest, CancellationToken cancellationToken)
         {
             return await tokenRefresher.EnsureFreshTokenAsync(tokenUserInFailedRequest, cancellationToken);
-            
+
         }
 
         private static bool IsAuthEndpoint(HttpRequestMessage request) =>

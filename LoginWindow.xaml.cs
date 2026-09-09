@@ -29,16 +29,18 @@ namespace ChatClient
         private readonly IAuthApiClient _authApi;
         private readonly ITokenStore _tokenStore;
         private readonly IChatHubClient _hub;
+        private readonly ITokenRefresher _tokenRefresher;
         private readonly Func<MainWindow> _mainWindowFactory;
 
         public LoginWindow(IAuthApiClient authApi, ITokenStore tokenStore,
-            IChatHubClient hub, Func<MainWindow> mainWindowFactory)
+            IChatHubClient hub, Func<MainWindow> mainWindowFactory, ITokenRefresher tokenRefresher)
         {
             InitializeComponent();
             _authApi = authApi;
             _tokenStore = tokenStore;
             _hub = hub;
             _mainWindowFactory = mainWindowFactory;
+            _tokenRefresher = tokenRefresher;
         }
 
         private async void btnSignUp_Click(object sender, RoutedEventArgs e)
@@ -120,8 +122,7 @@ namespace ChatClient
             }
             BorderError.Visibility = Visibility.Collapsed;
             await _tokenStore.SaveAsync(s.AccessToken, s.RefreshToken);
-            await _hub.StartAsync();
-
+            
             var main = _mainWindowFactory();
             Application.Current.MainWindow = main;
 
@@ -153,8 +154,12 @@ namespace ChatClient
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var token = await _tokenStore.GetRefreshTokenAsync();
-            if (!string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token))
+                return;
+
+            if (await _tokenRefresher.EnsureFreshTokenAsync(tokenSnapshot:null))
             {
+                await _hub.StartAsync();
                 var main = _mainWindowFactory();
                 Application.Current.MainWindow = main;
                 main.Show();
