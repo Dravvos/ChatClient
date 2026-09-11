@@ -28,7 +28,7 @@
                                     <TextBlock Text="D" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Foreground="White" FontWeight="Bold" Text="Daniel" />
+                                    <TextBlock Name="txtCurrentUsername" Foreground="White" FontWeight="Bold" Text="Daniel" />
                                     <TextBlock Text="Online" Foreground="#0ca30c" FontWeight="Bold" FontSize="12"/>
                                 </StackPanel>
                             </StackPanel>
@@ -48,54 +48,79 @@
                             </TextBox>
                         </Border>
 
-                        <!-- Lista de Contatos -->
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Name="scroll_Contacts">
-                            <StackPanel>
-                                <!-- Ana -->
-                                <ListBox Name="ContactsListBox" BorderThickness="0" Background="Transparent" SelectionChanged="ContactsListBox_SelectionChanged"/>
-                                <Border CornerRadius="8,8,8,8" Margin="12,0,12,0" Padding="14" Background="#032042" Name="borderExample1">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="36" Height="36" Margin="0,0,12,0">
-                                            <TextBlock Text="A" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
-                                        </Border>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Ana" FontWeight="Bold" Foreground="#6da7ec" FontSize="15" />
-                                            <TextBlock Text="Até amanhã 😊" Foreground="#c3c2b7" FontSize="13" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="09:52" Foreground="#898781" FontSize="12" VerticalAlignment="Top"/>
-                                    </Grid>
-                                </Border>
+                        <!-- Lista de Conversas -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ListBox Name="ContactsListBox"
+             BorderThickness="0"
+             Background="Transparent"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+             SelectionChanged="ContactsListBox_SelectionChanged">
 
-                                <!-- João -->
-                                <Border Name="borderExample2" Margin="12,0,12,0" Padding="14">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="36" Height="36" Margin="0,0,12,0">
-                                            <TextBlock Text="J" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
-                                        </Border>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="João" FontWeight="Bold" Foreground="White" FontSize="15" />
-                                            <TextBlock Text="Me envia o projeto." Foreground="#c3c2b7" FontSize="13" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="Ontem" Foreground="#898781" FontSize="12" VerticalAlignment="Top"/>
-                                    </Grid>
-                                </Border>
-                            </StackPanel>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Margin" Value="12,0,12,6"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border x:Name="ItemBorder" CornerRadius="8" Padding="14" Background="Transparent">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="ItemBorder" Property="Background" Value="#FF032042"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ItemBorder" Property="Background" Value="#141413"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" CornerRadius="23" Background="#FF5C6BC0" Width="36" Height="36" Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding AvatarLetter}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="15">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}, Path=IsSelected}" Value="True">
+                                                                    <Setter Property="Foreground" Value="#6da7ec"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding LastMessagePreview}" Foreground="#c3c2b7" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding LastMessageTimeDisplay}" Foreground="#898781" FontSize="12" VerticalAlignment="Top"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </ScrollViewer>
                     </StackPanel>
                 </Border>
 
                 <!-- ÁREA DO CHAT (DIREITA) -->
-                <Grid Grid.Column="1" Background="#FFEFEAE2">
+                <Grid Name="chatArea" Visibility="Hidden" Grid.Column="1" Background="#FFEFEAE2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="70" />
                         <RowDefinition Height="*" />
@@ -109,45 +134,69 @@
                                 <TextBlock Text="A" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Ana" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Name="txtUsername" Text="Ana" Foreground="White" FontWeight="Bold"/>
                                 <TextBlock Name="txtUserId" Text="" Visibility="Collapsed" FontSize="12"/>
-                                <TextBlock Text="Online" Foreground="DarkGray" FontWeight="SemiBold" FontSize="12"/>
+                                <TextBlock Name="txtuserStatus" Text="Online" Foreground="DarkGray" FontWeight="SemiBold" FontSize="12"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Mensagens -->
-                    <ScrollViewer Grid.Row="1" Padding="25" Background="#151515" Name="scroll_Messages">
+                    <ListBox Grid.Row="1"
+         Name="MessagesListBox"
+         Padding="25"
+         Background="#151515"
+         BorderThickness="0"
+         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
-                        <StackPanel>
-                            <ListBox Name="MessagesListBox" BorderThickness="0" Background="Transparent" />
-                            <!-- Mensagem Recebida -->
-                            <Border Name="borderMessagerRecievedExample" CornerRadius="10" Background="#1a1a19" Padding="12" MaxWidth="420" HorizontalAlignment="Left" BorderThickness="1">
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
-                                </Border.BorderBrush>
-                                <TextBlock TextWrapping="Wrap" FontSize="14">
-                                    <Run Foreground="#f0efec" Text="Oi! Tudo bem? " />
-                                </TextBlock>
-                            </Border>
-                            <TextBlock TextWrapping="Wrap" Width="35" HorizontalAlignment="Left" Margin="5,5,0,15">
-                                <Run FontWeight="Bold" Text="09:10" Foreground="#FF777777" FontSize="11" />
-                            </TextBlock>
-                            <!-- Mensagem Enviada -->
-                            <Border Name="borderMessageSentExample" CornerRadius="10" Background="#2A78D6" Padding="12" MaxWidth="420" HorizontalAlignment="Right">
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
-                                </Border.BorderBrush>
-                                <TextBlock TextWrapping="Wrap" FontSize="14">
-                                    <Run Text="Tudo ótimo! E você? " Foreground="White" />
-                                </TextBlock>
-                            </Border>
-                            <TextBlock TextWrapping="Wrap" Width="35" HorizontalAlignment="Right" Margin="0,5,5,0">
-                                <Run FontWeight="Bold" Text="09:11" Foreground="#FF777777" FontSize="11" />
-                            </TextBlock>
-                        </StackPanel>
-                    </ScrollViewer>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Focusable" Value="False"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
 
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,4,0,4">
+                                    <Border x:Name="Bubble" CornerRadius="10" Padding="12" MaxWidth="420" BorderThickness="1">
+                                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" Foreground="#f0efec"/>
+                                    </Border>
+                                    <StackPanel x:Name="MetaPanel" Orientation="Horizontal" Margin="5,5,5,0">
+                                        <TextBlock Text="{Binding TimeDisplay}" FontWeight="Bold" Foreground="#FF777777" FontSize="11"/>
+                                        <TextBlock x:Name="StatusText" Text="{Binding StatusIndicator}" Foreground="#6da7ec" FontSize="11" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsOwnMessage}" Value="True">
+                                        <Setter TargetName="Bubble" Property="Background" Value="#2A78D6"/>
+                                        <Setter TargetName="Bubble" Property="BorderBrush" Value="#2A78D6"/>
+                                        <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter TargetName="MetaPanel" Property="HorizontalAlignment" Value="Right"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsOwnMessage}" Value="False">
+                                        <Setter TargetName="Bubble" Property="Background" Value="#1a1a19"/>
+                                        <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Left"/>
+                                        <Setter TargetName="MetaPanel" Property="HorizontalAlignment" Value="Left"/>
+                                        <Setter TargetName="StatusText" Property="Visibility" Value="Collapsed"/>
+                                        <Setter TargetName="Bubble" Property="BorderBrush">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="#FFDDDDDD" Opacity="0.3"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                     <!-- Campo de Envio (Rodapé) -->
                     <Border Grid.Row="2" Padding="15" BorderThickness="0,1,0,0" BorderBrush="#FFDDDDDD" Background="#151515">
                         <Grid>

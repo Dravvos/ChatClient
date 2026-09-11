@@ -5,6 +5,7 @@ using ChatClient.Services.Realtime.Interfaces;
 using ChatClient.Services.Security.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -49,6 +50,10 @@ namespace ChatClient.Services.Realtime
           {
                 TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5),
                 TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)
+          }).ConfigureLogging(logging =>
+          {
+              logging.SetMinimumLevel(LogLevel.Debug); // Or LogLevel.Trace for maximum detail
+              logging.AddConsole(); // Requires Microsoft.Extensions.Logging.Console
           })
           .Build();
 
@@ -163,7 +168,15 @@ namespace ChatClient.Services.Realtime
         {
             try
             {
-                await _connection.InvokeAsync(methodName, conversationId, arg2, ct);
+                if (_connection.State == HubConnectionState.Connected)
+                {
+                    await _connection.InvokeAsync(methodName, conversationId, arg2, ct);
+                }
+                else
+                {
+                    // Handle the fact that you are disconnected (e.g., queue the message, log a warning, or throw a custom exception)
+                    throw new InvalidOperationException("Cannot send message. The SignalR connection is not active.");
+                }
             }
             catch (HubException ex)
             {
