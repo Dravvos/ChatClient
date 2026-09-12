@@ -21,7 +21,7 @@ namespace ChatClient.Services.Realtime
 {
     public class ChatHubClient : IChatHubClient
     {
-        private readonly HubConnection _connection;
+        public readonly HubConnection _connection;
         private readonly ITokenStore _tokenStore;
         private readonly ITokenRefresher _tokenRefresher;
         private readonly IAuthSessionNotifier _sessionNotifier;

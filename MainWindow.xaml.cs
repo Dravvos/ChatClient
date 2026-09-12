@@ -30,18 +30,18 @@ namespace ChatClient
     {
         private readonly IConversationApiClient _conversationApi;
         private readonly IMessageApiClient _messageApi;
-        private readonly IChatHubClient _hub;
         private readonly IUserApiClient _userApi;
         private readonly ICurrentUserContext _currentUserContext;
         private readonly Func<CreateGroupWindow> _createGroupFactory;
         private readonly HubConnection _connection;
         private readonly ObservableCollection<ConversationListItemViewModel> _conversations = new();
         private readonly ObservableCollection<MessageListItemViewModel> _messages = new();
+        private readonly ChatHubClient _hub;
 
         private Guid? _currentConversationId;
         private Guid? _currentUserId;
 
-        public MainWindow(IConversationApiClient conversationApi, IChatHubClient hub, Func<CreateGroupWindow> createGroupFactory, IMessageApiClient messageApi,
+        public MainWindow(IConversationApiClient conversationApi, ChatHubClient hub, Func<CreateGroupWindow> createGroupFactory, IMessageApiClient messageApi,
             IUserApiClient userApi, ICurrentUserContext currentUserContext)
         {
             InitializeComponent();
@@ -57,17 +57,62 @@ namespace ChatClient
 
             _hub.MessageReceived += Hub_MessageRecieved;
             
+            _hub.ConnectionStateChanged += (sender, e) =>
+            {
+                Console.WriteLine($"SignalR mudou ");
+            };
+
+            _hub._connection.Closed += async (error) =>
+            {
+                if (error != null)
+                {
+                    // ESSENCIAL: Isso vai te dizer POR QUE a conexão caiu
+                    Console.WriteLine($"SignalR connection closed: {error?.Message}");
+                    await Task.Delay(5000); // espera 5 segundos antes de tentar reconectar
+                    try
+                    {
+                        await _hub.StartAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Falha ao reconectar: {ex.Message}");
+                    }
+                }
+            };
         }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            _currentUserId = await _currentUserContext.GetUserIdAsync();
+            txtCurrentUsername.Text = await _currentUserContext.GetUserNameAsync();
+            await LoadConversationsAsync();
+            await _hub.StartAsync();
+        }
+
 
         private void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto dto)
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(async () =>
             {
                 if (dto.conversationId != _currentConversationId || _currentUserId is not { } userId)
                     return; // mensagem de uma conversa que não está aberta agora
 
                 _messages.Add(MessageListItemViewModel.FromDto(dto, userId));
+                if(dto.senderId!= userId) // se a mensagem não for do próprio usuário, marca como lida
+                    await _hub.MarkAsReadAsync(dto.conversationId, dto.id); // marca como lida assim que a mensagem é exibida
                 ScrollMessagesToEnd();
+            });
+        }
+
+        private void Hub_MessageRead(object? sender, Contracts.Conversations.MessageDto dto)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var message = _messages.FirstOrDefault(m => m.Id == dto.id);
+                if (message != null)
+                {
+                    message.Status = Common.Enums.MessageStatus.Read;
+                }
             });
         }
 
@@ -109,14 +154,6 @@ namespace ChatClient
             await LoadMessagesAsync(selected.Id);
         }
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            await _hub.StartAsync();
-            _currentUserId = await _currentUserContext.GetUserIdAsync();            
-            txtCurrentUsername.Text = await _currentUserContext.GetUserNameAsync();
-            await LoadConversationsAsync();
-        }
-
         private async Task LoadConversationsAsync()
         {
             try
@@ -144,7 +181,14 @@ namespace ChatClient
                 _messages.Clear();
                 // servidor devolve as mais recentes primeiro; a tela precisa de ordem cronológica
                 foreach (var dto in page.Reverse())
+                {
                     _messages.Add(MessageListItemViewModel.FromDto(dto, userId));
+                }
+
+                foreach (var m in _messages.Where(x => x.Status != Common.Enums.MessageStatus.Read && x.IsOwnMessage == false))
+                {
+                    await _hub.MarkAsReadAsync(conversationId, m.Id);
+                }
 
                 ScrollMessagesToEnd();
             }
@@ -170,9 +214,6 @@ namespace ChatClient
                 await _hub.SendMessageAsync(conversationId, txtMessage.Text.Trim());
                 txtMessage.Clear();
                 txtMessage.Focus();
-                // Não adiciono na lista aqui: o hub devolve "MessageReceived" pro remetente
-                // também (ChatService.SendMessageAsync manda pra todos os Participants), então
-                // o handler acima já cobre esse caso.
             }
             catch (ChatHubException ex)
             {

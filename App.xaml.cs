@@ -62,7 +62,7 @@ namespace ChatClient
                     services.AddSingleton<IMessageApiClient, MessageApiClient>();
                     services.AddSingleton<IUserApiClient, UserApiClient>();
                     services.AddSingleton<ITokenRefresher, TokenRefresher>();
-                    services.AddSingleton<IChatHubClient, ChatHubClient>();
+                    services.AddSingleton<ChatHubClient>();
                     services.AddSingleton<ICurrentUserContext, CurrentUserContext>();
                 })
                 .Build();
