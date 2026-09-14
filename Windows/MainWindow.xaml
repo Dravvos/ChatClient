@@ -143,12 +143,13 @@
 
                     <!-- Mensagens -->
                     <ListBox Grid.Row="1"
-         Name="MessagesListBox"
-         Padding="25"
-         Background="#151515"
-         BorderThickness="0"
-         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-
+                         Name="MessagesListBox"
+                         Padding="25"
+                         Background="#151515"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.ScrollChanged="MessagesListBox_ScrollChanged"> 
+                        
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Focusable" Value="False"/>
@@ -197,6 +198,14 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+
+                    <Border Name="LoadingOlderIndicator"
+            VerticalAlignment="Top" HorizontalAlignment="Center"
+            Background="#331a1a19" CornerRadius="12" Padding="10,4" Margin="0,8,0,0"
+            Visibility="Collapsed">
+                        <TextBlock Text="Carregando mensagens..." Foreground="#c3c2b7" FontSize="12"/>
+                    </Border>
+
                     <!-- Campo de Envio (Rodapé) -->
                     <Border Grid.Row="2" Padding="15" BorderThickness="0,1,0,0" BorderBrush="#FFDDDDDD" Background="#151515">
                         <Grid>

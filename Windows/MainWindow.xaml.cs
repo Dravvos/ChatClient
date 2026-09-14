@@ -1,4 +1,5 @@
-﻿using ChatClient.Contracts.Conversations;
+﻿using ChatClient.Common.Enums;
+using ChatClient.Contracts.Conversations;
 using ChatClient.Services.Api;
 using ChatClient.Services.Api.Conversations.Interfaces;
 using ChatClient.Services.Api.Messages.Interfaces;
@@ -20,6 +21,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace ChatClient
 {
@@ -33,7 +35,6 @@ namespace ChatClient
         private readonly IUserApiClient _userApi;
         private readonly ICurrentUserContext _currentUserContext;
         private readonly Func<CreateGroupWindow> _createGroupFactory;
-        private readonly HubConnection _connection;
         private readonly ObservableCollection<ConversationListItemViewModel> _conversations = new();
         private readonly ObservableCollection<MessageListItemViewModel> _messages = new();
         private readonly ChatHubClient _hub;
@@ -41,6 +42,9 @@ namespace ChatClient
         private Guid? _currentConversationId;
         private Guid? _currentUserId;
 
+        private bool _isLoadingOlderMessages;
+        private bool _hasMoreOlderMessages = true;
+        private ScrollViewer? _messagesScrollViewer;
         public MainWindow(IConversationApiClient conversationApi, ChatHubClient hub, Func<CreateGroupWindow> createGroupFactory, IMessageApiClient messageApi,
             IUserApiClient userApi, ICurrentUserContext currentUserContext)
         {
@@ -56,11 +60,13 @@ namespace ChatClient
             MessagesListBox.ItemsSource = _messages;
 
             _hub.MessageReceived += Hub_MessageRecieved;
-            
+
             _hub.ConnectionStateChanged += (sender, e) =>
             {
                 Console.WriteLine($"SignalR mudou ");
             };
+
+            _hub.MessageRead += Hub_MessageRead;
 
             _hub._connection.Closed += async (error) =>
             {
@@ -90,29 +96,40 @@ namespace ChatClient
         }
 
 
-        private void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto dto)
+        private async void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto dto)
         {
-            Dispatcher.Invoke(async () =>
-            {
-                if (dto.conversationId != _currentConversationId || _currentUserId is not { } userId)
-                    return; // mensagem de uma conversa que não está aberta agora
+            if (dto.conversationId != _currentConversationId || _currentUserId is not { } userId)
+                return;
 
+            Dispatcher.Invoke(() =>
+            {
                 _messages.Add(MessageListItemViewModel.FromDto(dto, userId));
-                if(dto.senderId!= userId) // se a mensagem não for do próprio usuário, marca como lida
-                    await _hub.MarkAsReadAsync(dto.conversationId, dto.id); // marca como lida assim que a mensagem é exibida
                 ScrollMessagesToEnd();
             });
+
+            if (dto.senderId != userId)
+            {
+                try { await _hub.MarkAsReadAsync(dto.conversationId, dto.id); }
+                catch (ChatHubException ex)
+                {
+                    Console.WriteLine($"Falha ao marcar mensagem como lida: {ex.Message}");
+                    /* falha silenciosa — a próxima abertura da conversa corrige */
+                }
+            }
         }
 
-        private void Hub_MessageRead(object? sender, Contracts.Conversations.MessageDto dto)
+        private void Hub_MessageRead(object? sender, ChatHubEvent.MessageReadEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
-                var message = _messages.FirstOrDefault(m => m.Id == dto.id);
-                if (message != null)
-                {
-                    message.Status = Common.Enums.MessageStatus.Read;
-                }
+                if (e.ConversationId != _currentConversationId)
+                    return; // conversa não está aberta agora — nada pra atualizar na tela
+
+                var readMessage = _messages.FirstOrDefault(m => m.Id == e.MessageId);
+
+                foreach (var m in _messages)
+                    if (m.IsOwnMessage && m.Status != MessageStatus.Read)
+                        m.Status = MessageStatus.Read; // agora dispara PropertyChanged e atualiza o ✓✓
             });
         }
 
@@ -174,10 +191,13 @@ namespace ChatClient
             if (_currentUserId is not { } userId)
                 return; // sem usuário identificado — sessão provavelmente expirada
 
+            _hasMoreOlderMessages = true; // nova conversa, assume que pode ter histórico até provar o contrário
+
+
             try
             {
-                var (page, _) = await _conversationApi.GetMessagesAsync(conversationId, pageSize: 50);
-
+                var (page, hasMore) = await _conversationApi.GetMessagesAsync(conversationId, pageSize: 50);
+                _hasMoreOlderMessages = hasMore;
                 _messages.Clear();
                 // servidor devolve as mais recentes primeiro; a tela precisa de ordem cronológica
                 foreach (var dto in page.Reverse())
@@ -185,12 +205,11 @@ namespace ChatClient
                     _messages.Add(MessageListItemViewModel.FromDto(dto, userId));
                 }
 
-                foreach (var m in _messages.Where(x => x.Status != Common.Enums.MessageStatus.Read && x.IsOwnMessage == false))
-                {
-                    await _hub.MarkAsReadAsync(conversationId, m.Id);
-                }
-
                 ScrollMessagesToEnd();
+
+                var lastFromOther = page.FirstOrDefault(m => m.senderId != userId); // page vem mais recentes primeiro
+                if (lastFromOther is not null)
+                    await _hub.MarkAsReadAsync(conversationId, lastFromOther.id);
             }
             catch (Exception ex)
             {
@@ -218,6 +237,82 @@ namespace ChatClient
             catch (ChatHubException ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+
+        private ScrollViewer? GetMessagesScrollViewer()
+        {
+            if (_messagesScrollViewer is not null) return _messagesScrollViewer;
+            _messagesScrollViewer = FindScrollViewer(MessagesListBox);
+            return _messagesScrollViewer;
+
+            
+        }
+        private ScrollViewer? FindScrollViewer(DependencyObject o)
+        {
+            if (o is ScrollViewer sv) return sv;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
+            {
+                var found = FindScrollViewer(VisualTreeHelper.GetChild(o, i));
+                if (found is not null) return found;
+            }
+            return null;
+        }
+        private void MessagesListBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (e.ExtentWidthChange != 0) return;
+
+            if (e.VerticalOffset < 40 && e.VerticalChange < 0)
+                _ = TryLoadOlderMessagesAsync();
+        }
+
+        private async Task TryLoadOlderMessagesAsync()
+        {
+            if (_isLoadingOlderMessages || !_hasMoreOlderMessages) return;
+            if (_currentConversationId is not { } conversationId || _currentUserId is not { } userId) return;
+            if (_messages.Count == 0) return;
+
+            _isLoadingOlderMessages = true;
+            LoadingOlderIndicator.Visibility = Visibility.Visible;
+
+            var scrollViewer = GetMessagesScrollViewer();
+            var previousExtentHeight = scrollViewer?.ExtentHeight ?? 0;
+            var previousOffset = scrollViewer?.VerticalOffset ?? 0;
+
+            try
+            {
+                // _messages fica sempre em ordem cronológica ([0] = mais antiga carregada),
+                // então o cursor pra "antes disso" é o SentAt do primeiro item.
+                var oldestSentAt = _messages[0].SentAt;
+                var (page, hasMore) = await _conversationApi.GetMessagesAsync(conversationId, before: oldestSentAt, pageSize: 50);
+
+                if (conversationId != _currentConversationId)
+                    return; // usuário trocou de conversa enquanto a página antiga ainda carregava
+
+                _hasMoreOlderMessages = hasMore;
+                if (page.Count == 0) return;
+
+                // servidor devolve mais recentes primeiro; insere na ordem inversa pra manter cronologia no topo
+                var olderItems = page.Reverse().Select(dto => MessageListItemViewModel.FromDto(dto, userId)).ToList();
+                for (int i = 0; i < olderItems.Count; i++)
+                    _messages.Insert(i, olderItems[i]);
+
+                if (scrollViewer is not null)
+                {
+                    // espera o layout medir a nova altura do conteúdo antes de reposicionar o scroll
+                    await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+                    var newExtentHeight = scrollViewer.ExtentHeight;
+                    scrollViewer.ScrollToVerticalOffset(previousOffset + (newExtentHeight - previousExtentHeight));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Não foi possível carregar mensagens antigas: {ex.Message}");
+            }
+            finally
+            {
+                _isLoadingOlderMessages = false;
+                LoadingOlderIndicator.Visibility = Visibility.Collapsed;
             }
         }
     }

@@ -14,9 +14,10 @@ namespace ChatClient.ViewModels
     {
         public Guid Id { get; set; }
         public string Content { get; set; } = string.Empty;
-        public string TimeDisplay { get;set; } = string.Empty;
+        public DateTime SentAt { get; set; }
+        public string TimeDisplay { get; set; } = string.Empty;
         public bool IsOwnMessage { get; set; }
-        
+
         private MessageStatus _status;
 
         public MessageStatus Status
@@ -31,7 +32,7 @@ namespace ChatClient.ViewModels
             }
         }
 
-        public string StatusIndicator=> Status switch
+        public string StatusIndicator => Status switch
         {
             MessageStatus.Sent => "✓",
             MessageStatus.Delivered => "✓✓",
@@ -52,7 +53,8 @@ namespace ChatClient.ViewModels
                 Content = dto.content,
                 TimeDisplay = dto.sentAt.ToLocalTime().ToString("HH:mm"),
                 IsOwnMessage = dto.senderId == currentUserId,
-                Status = dto.status
+                Status = dto.status,
+                SentAt = dto.sentAt.ToLocalTime()
             };
         }
     }
