@@ -31,7 +31,6 @@ namespace ChatClient
     public partial class MainWindow : Window
     {
         private readonly IConversationApiClient _conversationApi;
-        private readonly IMessageApiClient _messageApi;
         private readonly IUserApiClient _userApi;
         private readonly ICurrentUserContext _currentUserContext;
         private readonly Func<CreateGroupWindow> _createGroupFactory;
@@ -45,7 +44,15 @@ namespace ChatClient
         private bool _isLoadingOlderMessages;
         private bool _hasMoreOlderMessages = true;
         private ScrollViewer? _messagesScrollViewer;
-        public MainWindow(IConversationApiClient conversationApi, ChatHubClient hub, Func<CreateGroupWindow> createGroupFactory, IMessageApiClient messageApi,
+
+        private DateTime _lastTypingNotificationSentAt = DateTime.MinValue;
+        private static readonly TimeSpan TypingNotificationThrottle = TimeSpan.FromSeconds(2);
+
+        private DispatcherTimer? _typingIndicatorHideTimer;
+        private static readonly TimeSpan TypingIndicatorHideDelay = TimeSpan.FromSeconds(3);
+        private string _statusTextBeforeTyping = "Online";
+
+        public MainWindow(IConversationApiClient conversationApi, ChatHubClient hub, Func<CreateGroupWindow> createGroupFactory,
             IUserApiClient userApi, ICurrentUserContext currentUserContext)
         {
             InitializeComponent();
@@ -54,7 +61,6 @@ namespace ChatClient
             _createGroupFactory = createGroupFactory;
             _currentUserContext = currentUserContext;
             _userApi = userApi;
-            _messageApi = messageApi;
 
             ContactsListBox.ItemsSource = _conversations;
             MessagesListBox.ItemsSource = _messages;
@@ -85,6 +91,8 @@ namespace ChatClient
                     }
                 }
             };
+
+            _hub.TypingReceived += Hub_TypingReceived;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -94,7 +102,6 @@ namespace ChatClient
             await LoadConversationsAsync();
             await _hub.StartAsync();
         }
-
 
         private async void Hub_MessageRecieved(object? sender, Contracts.Conversations.MessageDto dto)
         {
@@ -164,6 +171,11 @@ namespace ChatClient
         {
             if (ContactsListBox.SelectedItem is not ConversationListItemViewModel selected)
                 return;
+
+            _typingIndicatorHideTimer?.Stop();
+            _typingIndicatorHideTimer = null;
+            txtuserStatus.Text = "Online";
+            txtuserStatus.Foreground = Brushes.DarkGray;
 
             _currentConversationId = selected.Id;
             txtUsername.Text = selected.DisplayName;
@@ -246,7 +258,7 @@ namespace ChatClient
             _messagesScrollViewer = FindScrollViewer(MessagesListBox);
             return _messagesScrollViewer;
 
-            
+
         }
         private ScrollViewer? FindScrollViewer(DependencyObject o)
         {
@@ -315,5 +327,56 @@ namespace ChatClient
                 LoadingOlderIndicator.Visibility = Visibility.Collapsed;
             }
         }
+
+        private async void txtMessage_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_currentConversationId is not { } conversationId) return;
+            if (string.IsNullOrEmpty(txtMessage.Text)) return; // campo limpo (ex.: após enviar) não conta como "digitando"
+
+            var now = DateTime.UtcNow;
+            if (now - _lastTypingNotificationSentAt < TypingNotificationThrottle) return;
+            _lastTypingNotificationSentAt = now;
+
+            try
+            {
+                await _hub.NotifyTypingAsync(conversationId);
+            }
+            catch (Exception)
+            {
+                // best-effort — indicador de "digitando" não é crítico, uma falha aqui não deve incomodar o usuário
+            }
+        }
+
+        private void Hub_TypingReceived(object? sender, ChatHubEvent.TypingEventArgs e)
+        {
+            if (e.ConversationId != _currentConversationId) return;
+            Dispatcher.Invoke(() =>
+            {
+                
+            });
+        }
+
+        private void ShowTypingIndicator()
+        {
+            if(_typingIndicatorHideTimer is null)
+                _statusTextBeforeTyping = txtuserStatus.Text;
+
+            txtuserStatus.Text = "typing...";
+
+            txtuserStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x6d, 0xa7, 0xec));
+
+            _typingIndicatorHideTimer?.Stop();
+            _typingIndicatorHideTimer = new DispatcherTimer { Interval = TypingIndicatorHideDelay };
+            _typingIndicatorHideTimer.Tick += TypingIndicatorHideTimer_Tick;
+            _typingIndicatorHideTimer.Start();
+        }
+        private void TypingIndicatorHideTimer_Tick(object? sender, EventArgs e)
+        {
+            _typingIndicatorHideTimer?.Stop();
+            _typingIndicatorHideTimer = null;
+            txtuserStatus.Text = _statusTextBeforeTyping;
+            txtuserStatus.Foreground = Brushes.DarkGray;
+        }
+
     }
 }
