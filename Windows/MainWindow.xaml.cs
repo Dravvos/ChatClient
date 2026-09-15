@@ -1,26 +1,15 @@
 ﻿using ChatClient.Common.Enums;
-using ChatClient.Contracts.Conversations;
 using ChatClient.Services.Api;
 using ChatClient.Services.Api.Conversations.Interfaces;
-using ChatClient.Services.Api.Messages.Interfaces;
 using ChatClient.Services.Realtime;
 using ChatClient.Services.Realtime.Interfaces;
 using ChatClient.Services.Security.Interfaces;
 using ChatClient.ViewModels;
-using Microsoft.AspNetCore.SignalR.Client;
-using System.Collections;
 using System.Collections.ObjectModel;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace ChatClient
@@ -40,6 +29,9 @@ namespace ChatClient
 
         private Guid? _currentConversationId;
         private Guid? _currentUserId;
+        private Guid? _currentOtherUserId;
+        private UserStatus _currentOtherUserStatus = UserStatus.Offline;
+        private bool _isTypingIndicatorActive;
 
         private bool _isLoadingOlderMessages;
         private bool _hasMoreOlderMessages = true;
@@ -50,7 +42,7 @@ namespace ChatClient
 
         private DispatcherTimer? _typingIndicatorHideTimer;
         private static readonly TimeSpan TypingIndicatorHideDelay = TimeSpan.FromSeconds(3);
-        private string _statusTextBeforeTyping = "Online";
+        private string _currentOtherUserName;
 
         public MainWindow(IConversationApiClient conversationApi, ChatHubClient hub, Func<CreateGroupWindow> createGroupFactory,
             IUserApiClient userApi, ICurrentUserContext currentUserContext)
@@ -93,6 +85,8 @@ namespace ChatClient
             };
 
             _hub.TypingReceived += Hub_TypingReceived;
+            _hub.UserStatusChanged += ChatHubClient_UserStatusChanged;
+
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -175,9 +169,18 @@ namespace ChatClient
             _typingIndicatorHideTimer?.Stop();
             _typingIndicatorHideTimer = null;
             txtuserStatus.Text = "Online";
-            txtuserStatus.Foreground = Brushes.DarkGray;
+            txtuserStatus.Foreground = Brushes.Green;
 
             _currentConversationId = selected.Id;
+            _currentOtherUserId = selected.OtherParticipantId;
+            _currentOtherUserStatus = selected.OtherParticipantStatus;
+            _currentOtherUserName = selected.DisplayName;
+
+            _isTypingIndicatorActive = false;
+            _typingIndicatorHideTimer?.Stop();
+            _typingIndicatorHideTimer = null;
+            RefreshStatusHeader();
+
             txtUsername.Text = selected.DisplayName;
             chatArea.Visibility = Visibility.Visible;
             await LoadMessagesAsync(selected.Id);
@@ -352,31 +355,58 @@ namespace ChatClient
             if (e.ConversationId != _currentConversationId) return;
             Dispatcher.Invoke(() =>
             {
-                
+                ShowTypingIndicator();
             });
         }
 
         private void ShowTypingIndicator()
         {
-            if(_typingIndicatorHideTimer is null)
-                _statusTextBeforeTyping = txtuserStatus.Text;
-
-            txtuserStatus.Text = "typing...";
-
-            txtuserStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x6d, 0xa7, 0xec));
+            _isTypingIndicatorActive = true;
+            RefreshStatusHeader();
 
             _typingIndicatorHideTimer?.Stop();
             _typingIndicatorHideTimer = new DispatcherTimer { Interval = TypingIndicatorHideDelay };
             _typingIndicatorHideTimer.Tick += TypingIndicatorHideTimer_Tick;
             _typingIndicatorHideTimer.Start();
         }
+
         private void TypingIndicatorHideTimer_Tick(object? sender, EventArgs e)
         {
             _typingIndicatorHideTimer?.Stop();
             _typingIndicatorHideTimer = null;
-            txtuserStatus.Text = _statusTextBeforeTyping;
-            txtuserStatus.Foreground = Brushes.DarkGray;
+            _isTypingIndicatorActive = false;
+            RefreshStatusHeader();
+        }
+        private void ChatHubClient_UserStatusChanged(object? sender, ChatHubEvent.UserStatusChangedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (e.UserId != _currentOtherUserId)
+                    return; // status de alguém que não é o outro lado da conversa aberta — ignora
+
+                _currentOtherUserStatus = e.Status;
+                RefreshStatusHeader();
+            });
         }
 
+        private void RefreshStatusHeader()
+        {
+            if (_isTypingIndicatorActive)
+            {
+                txtuserStatus.Text = _currentOtherUserName + " is typing...";
+                txtuserStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x6d, 0xa7, 0xec));
+                return;
+            }
+
+            txtuserStatus.Text = _currentOtherUserStatus switch
+            {
+                UserStatus.Online => "Online",
+                UserStatus.Away => "Away",
+                _ => "Offline"
+            };
+            txtuserStatus.Foreground = _currentOtherUserStatus == UserStatus.Online
+                ? new SolidColorBrush(Color.FromRgb(0x0c, 0xa3, 0x0c))
+                : Brushes.DarkGray;
+        }
     }
 }

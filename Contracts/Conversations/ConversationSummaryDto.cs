@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 
 namespace ChatClient.Contracts.Conversations
 {
-    public record ConversationSummaryDto(Guid id, ConversationType type, string? name, string? lastMessagePreview, DateTime? lastMessageAt, int unreadCount);
+    public record ConversationSummaryDto(Guid id, ConversationType type, string? name, string? lastMessagePreview, DateTime? lastMessageAt, int unreadCount, Guid? otherParticipantId,
+        string? otherParticipantName, UserStatus? otherParticipantStatus);
 }

@@ -29,7 +29,6 @@
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Name="txtCurrentUsername" Foreground="White" FontWeight="Bold" Text="Daniel" />
-                                    <TextBlock Text="Online" Foreground="#0ca30c" FontWeight="Bold" FontSize="12"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

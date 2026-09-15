@@ -18,14 +18,19 @@ namespace ChatClient.ViewModels
         public string LastMessageTimeDisplay { get; set; } = string.Empty;
         public int UnreadCount { get; set; } = 0;
         public string AvatarLetter => DisplayName.Length > 0 ? DisplayName.Trim()[0].ToString().ToUpperInvariant() : "?";
+        public Guid? OtherParticipantId { get; init; }
+        public UserStatus OtherParticipantStatus { get; init; } = UserStatus.Offline;
 
-        public static ConversationListItemViewModel FromDto(ConversationSummaryDto dto) => new ()
+        public static ConversationListItemViewModel FromDto(ConversationSummaryDto dto) => new()
         {
-            Id=dto.id,
-            Type=dto.type,
+            Id = dto.id,
+            Type = dto.type,
             DisplayName = dto.name ?? "Conversation",
-            LastMessagePreview=dto.lastMessagePreview ?? "No messages",
-            LastMessageTimeDisplay= FormatTimestamp(dto.lastMessageAt),
+            LastMessagePreview = dto.lastMessagePreview ?? "No messages",
+            LastMessageTimeDisplay = FormatTimestamp(dto.lastMessageAt),
+            UnreadCount = dto.unreadCount,
+            OtherParticipantId = dto.otherParticipantId,
+            OtherParticipantStatus = dto.otherParticipantStatus ?? UserStatus.Offline
         };
 
         private static string FormatTimestamp(DateTime? utc)
